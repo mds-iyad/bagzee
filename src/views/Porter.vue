@@ -6,6 +6,16 @@
 
 
         <form style="margin-bottom:150px">
+            <Message id="message" v-if="success" severity="success">
+                <div class="ml-5">
+                    <p style="font-weight:1000;">Félicitations ! Votre annonce a été transmise à nos services.</p>
+                    <p>Un mail de confirmation vous sera envoyé dans quelques minutes. 
+                        <br> Vous pouvez également consulter vos annonces dans 
+                        <span style="font-weight:1000; text-decoration:underline;">« Mes annonces » .</span>
+                    </p>
+                </div>
+            </Message>    
+
             <div class="card">
                 <h1 style="font-size:2rem;">Votre trajet</h1>
                 <div class="formPart formgrid grid">
@@ -238,7 +248,9 @@
             </transition>
 
             <div style="margin-top: 20px; display:flex; justify-content:center;" v-if="thirdForm">
-                <Button label="Poster mon annonce" class="postButton p-button-outlined" />
+                <a href="#app">
+                    <Button @click="submitHandler" label="Poster mon annonce" class="postButton p-button-outlined" />
+                </a>
             </div>
 
 
@@ -339,7 +351,6 @@ export default {
                     this.bagages.push({
                         id: i,
                         color:"",
-                        colorbind:"",
                         weightValue: 0,
                         dimLValue: 0,
                         dimlValue: 0,
@@ -360,6 +371,10 @@ export default {
         toggleForm3: function()
         {
             this.thirdForm = true
+        },
+        submitHandler()
+        {
+            success = true
         }
     },
     

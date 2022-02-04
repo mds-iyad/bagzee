@@ -5,8 +5,8 @@
         <div class="breadcrumb-aligner"></div>
 
 
-        <form style="margin-bottom:150px">
-            <Message id="message" v-if="success" severity="success">
+        <form @submit.prevent="submitHandler(!v$.$invalid)" style="margin-bottom:150px">
+            <Message v-if="success" severity="success">
                 <div class="ml-5">
                     <p style="font-weight:1000;">Félicitations ! Votre annonce a été transmise à nos services.</p>
                     <p>Un mail de confirmation vous sera envoyé dans quelques minutes. 
@@ -14,7 +14,8 @@
                         <span style="font-weight:1000; text-decoration:underline;">« Mes annonces » .</span>
                     </p>
                 </div>
-            </Message>       
+            </Message>
+            <Message v-if="failed" severity="error">Erreur, quelques informations sont incorrectes ou manquantes.</Message>       
             <div class="card">
                 <h1 style="font-size:2rem;">Votre trajet</h1>
                 <div class="formPart formgrid grid">
@@ -161,7 +162,7 @@
                                     <legend class="mb-2" style="border-bottom:none;">Dimensions Maximum
                                     </legend>
                                     <label style="margin-right:5px;" for="dimL">L</label>
-                                    <InputNumber class="p-invalid" inputStyle="width:130px;" style="width:130px; margin-right:20px;" id="dimL" v-model="n.dimLValue"
+                                    <InputNumber inputStyle="width:130px;" style="width:130px; margin-right:20px;" id="dimL" v-model="n.dimLValue"
                                     :minFractionDigits="2" :maxFractionDigits="5" :min="0" :max="1000" suffix=" cm" />
 
                                     <label style="margin-right:5px;" for="diml">l</label>
@@ -256,9 +257,7 @@
             </transition>
 
             <div style="margin-top: 20px; display:flex; justify-content:center;" v-if="thirdForm">
-                <a href="#app">
-                    <Button @click="success = true" label="Poster mon annonce" class="postButton p-button-outlined" />
-                </a>
+                <Button type="submit" label="Poster mon annonce" class="postButton p-button-outlined" />
             </div>
 
         </form>
@@ -287,6 +286,8 @@ import Textarea from 'primevue/textarea'
 import Button from 'primevue/button'
 import ColorPicker from 'primevue/colorpicker'
 import Message from 'primevue/message';
+import useVuelidate from '@vuelidate/core'
+import { required } from '@vuelidate/validators'
 
 export default {
     setup() {
@@ -298,8 +299,26 @@ export default {
             {label: 'Proposer un bagage'}
         ]);
         const particularite = ref([]);
+        
+        const submitted = ref(false);
 
-        return { home, items, particularite }
+        const v$ = useVuelidate();
+
+        const bagageNumbers = [
+                {name: 1},
+                {name: 2},
+                {name: 3},
+                {name: 4},
+                {name: 5},
+                {name: 6},
+                {name: 7},
+                {name: 8},
+                {name: 9},
+                {name: 10},
+                
+            ];
+
+        return { v$, submitted, home, items, particularite, bagageNumbers }
     },
     components:{Breadcrumb, Calendar, RadioButton, Dropdown, InputNumber, Checkbox, FileUpload, Textarea, Button, ColorPicker, Message },
     data(){
@@ -312,30 +331,15 @@ export default {
 
             secondForm: false,
             selectedBagage: 0,
-            weightValue: 0,
-            diml: 0,
-            dimL: 0,
-            dimH: 0,
             commentaire: null,
-            bagageNumbers: [
-                {name: 1},
-                {name: 2},
-                {name: 3},
-                {name: 4},
-                {name: 5},
-                {name: 6},
-                {name: 7},
-                {name: 8},
-                {name: 9},
-                {name: 10},
-                
-            ],
+
             bagages: [],
             files: [],
 
             thirdForm : false,
             estimatedValue: null,
             success: false,
+            failed: false,
         }
     },
     methods: {
@@ -361,11 +365,10 @@ export default {
                     this.bagages.push({
                         id: i,
                         color: null,
-                        colorbind:"",
-                        weightValue: 0,
-                        dimLValue: 0,
-                        dimlValue: 0,
-                        dimHValue: 0,
+                        weightValue: null,
+                        dimLValue: null,
+                        dimlValue: null,
+                        dimHValue: null,
                         files: []
                     })
                 }
@@ -391,9 +394,53 @@ export default {
             this.thirdForm = true
         },
 
-        setBg({ previewSrc }) 
+        submitHandler(isFormValid)
         {
-        return previewSrc ? { backgroundImage: `url(${previewSrc})` } : {};
+            console.log(this.v$)
+            this.submitted = true;
+            if(isFormValid){
+                window.scrollTo(0,0);
+                this.success = true
+                this.failed = false
+                this.resetForm();
+            }
+            else {
+                window.scrollTo(0,0);
+                this.success = false
+                this.failed = true
+            }
+            
+        },
+        resetForm()
+        {
+            this.value = null
+            this.timeD = null
+            this.timeA = null
+            this.locomotion = null
+            this.enlevement = null
+
+            this.selectedBagage = null
+            this.bagages = []
+
+            this.secondForm = false
+            this.thirdForm = false
+
+        }
+    },
+    validations()
+    {
+        return{
+            value: { required },
+            timeD: { required },
+            timeA: { required },
+            locomotion: { required },
+            enlevement: { required },
+    
+            estimatedValue: { required },
+            bagages: [
+                { weightValue : { required }, dimLValue: { required }, dimlValue: { required }, dimHValue: { required }, color: { required } },
+                { weightValue : { required }, dimLValue: { required }, dimlValue: { required }, dimHValue: { required }, color: { required } }
+            ]
         }
     }
 }
